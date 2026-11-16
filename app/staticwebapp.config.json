@@ -1,0 +1,23 @@
+{
+  "routes": [
+    { "route": "/.auth/login/aad", "statusCode": 404 },
+    { "route": "/.auth/login/twitter", "statusCode": 404 },
+    { "route": "/api/*", "allowedRoles": ["owner"] },
+    { "route": "/*", "allowedRoles": ["owner"] }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/api/*", "/favicon.svg"]
+  },
+  "responseOverrides": {
+    "401": { "statusCode": 302, "redirect": "/.auth/login/github" }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "same-origin"
+  },
+  "platform": {
+    "apiRuntime": "node:22"
+  }
+}

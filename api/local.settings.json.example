@@ -1,0 +1,8 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "",
+    "SQL_CONNECTION_STRING": "Server=tcp:<サーバー名>.database.windows.net,1433;Database=kakeibo;User Id=<管理者ログイン>;Password=<パスワード>;Encrypt=true;"
+  }
+}

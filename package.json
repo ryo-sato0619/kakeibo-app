@@ -1,0 +1,14 @@
+{
+  "name": "kakeibo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "個人用 家計簿 Web アプリ（Azure Static Web Apps + Azure SQL Database）",
+  "scripts": {
+    "install:all": "npm --prefix api install && npm --prefix app install",
+    "test": "npm --prefix api test && npm --prefix app test",
+    "dev": "swa start http://localhost:5173 --run \"npm --prefix app run dev\" --api-location api --swa-config-location app"
+  },
+  "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.2"
+  }
+}

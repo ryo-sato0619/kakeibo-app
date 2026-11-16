@@ -1,0 +1,22 @@
+{
+  "name": "kakeibo-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "家計簿アプリ API（Azure Static Web Apps マネージド Functions / Node.js / v4 プログラミングモデル）",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "test": "node --test",
+    "test:db": "cross-env RUN_DB_TESTS=1 node --test",
+    "start": "func start"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "mssql": "^11.0.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

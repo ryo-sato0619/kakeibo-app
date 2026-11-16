@@ -1,0 +1,33 @@
+# push / プルリクエストのたびに、テストと画面のビルドを確認する。
+# （デプロイは、SWA を GitHub と連携したときに Azure が自動で追加する別のワークフローが行う）
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: API（単体テスト）
+        working-directory: api
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+
+      - name: 画面（テストとビルド）
+        working-directory: app
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+          npm run build

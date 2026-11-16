@@ -1,0 +1,9 @@
+# dependencies and build output
+node_modules/
+dist/
+.swa/
+
+# secrets (connection string / password) - never commit
+api/local.settings.json
+.env
+.env.local
