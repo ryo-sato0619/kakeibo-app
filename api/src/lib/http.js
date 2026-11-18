@@ -2,7 +2,7 @@
 
 const { ApiError, badRequest } = require('./errors');
 const { requireOwner } = require('./auth');
-const { getDb, isTransient } = require('./db');
+const { getDb, isTransient, describeError } = require('./db');
 
 const ok = (data) => ({ status: 200, jsonBody: data });
 const created = (data) => ({ status: 201, jsonBody: data });
@@ -28,19 +28,19 @@ async function readJson(request) {
   }
 }
 
-function errorBody(code, message) {
-  return { error: { code, message } };
+function errorBody(code, message, detail) {
+  return { error: detail ? { code, message, detail } : { code, message } };
 }
 
 /** 例外 → HTTP レスポンス。想定外の内容（SQL のエラー文など）は画面に返さずログにだけ残す。 */
 function toErrorResponse(err, context) {
   if (err instanceof ApiError) {
-    return { status: err.status, jsonBody: errorBody(err.code, err.message) };
+    return { status: err.status, jsonBody: errorBody(err.code, err.message, err.detail) };
   }
   if (isTransient(err)) {
     return {
       status: 503,
-      jsonBody: errorBody('DB_UNAVAILABLE', 'データベースを起動中です。しばらくしてからもう一度お試しください。'),
+      jsonBody: errorBody('DB_UNAVAILABLE', 'データベースを起動中です。しばらくしてからもう一度お試しください。', describeError(err)),
     };
   }
   const number = err && (err.number || (err.originalError && err.originalError.number));
@@ -51,7 +51,7 @@ function toErrorResponse(err, context) {
     return { status: 409, jsonBody: errorBody('CONFLICT', '関連するデータがあるため、この操作は行えません') };
   }
   if (context && typeof context.error === 'function') context.error(err);
-  return { status: 500, jsonBody: errorBody('INTERNAL_ERROR', '内部エラーが発生しました') };
+  return { status: 500, jsonBody: errorBody('INTERNAL_ERROR', '内部エラーが発生しました', describeError(err)) };
 }
 
 /**

@@ -20,6 +20,8 @@ Azure Static Web Apps のマネージド Functions（Node.js / `@azure/functions
 { "error": { "code": "VALIDATION_ERROR", "message": "amount は 1 〜 99,999,999 の整数で指定してください" } }
 ```
 
+503（`DB_UNAVAILABLE`）と 500（`INTERNAL_ERROR`）には、原因を切り分けるための診断用の短いコード `detail`（例：`"40613"`、`"ESOCKET/ENOTFOUND"`）が付くことがあります。英数字のコードだけで、エラーメッセージやサーバー名、パスワードは含みません。見方は `deploy.md` の「エラーの詳細コードの見方」を参照してください。
+
 | status | code | 意味 |
 | --- | --- | --- |
 | 400 | `VALIDATION_ERROR` | 入力が不正（形式・範囲・存在しない/アーカイブ済みの口座やカテゴリの指定など） |

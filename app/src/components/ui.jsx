@@ -123,6 +123,7 @@ export function ErrorBanner({ error, onRetry }) {
   return (
     <div role="alert" className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
       <p>{unauthorized ? 'ログインが必要です。' : forbidden ? 'このアカウントには利用権限がありません。' : error.message}</p>
+      {error.detail && <p className="mt-0.5 text-xs opacity-70">詳細コード：{error.detail}</p>}
       <div className="mt-1 flex gap-4">
         {unauthorized && (
           <a className="underline" href="/.auth/login/github">

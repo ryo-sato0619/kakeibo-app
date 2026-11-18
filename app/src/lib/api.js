@@ -1,11 +1,12 @@
 // API クライアント。fetch を差し替えられるので、テスト・デモモードでも同じコードが動く。
 
 export class ApiError extends Error {
-  constructor(status, code, message) {
+  constructor(status, code, message, detail) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
+    this.detail = detail; // サーバーが返す診断用の短いコード（例: 40613）
   }
 }
 
@@ -28,16 +29,18 @@ function buildUrl(path, query) {
 async function toApiError(res) {
   let code = `HTTP_${res.status}`;
   let message = `サーバーでエラーが発生しました（${res.status}）`;
+  let detail;
   try {
     const body = await res.json();
     if (body && body.error) {
       code = body.error.code || code;
       message = body.error.message || message;
+      detail = body.error.detail;
     }
   } catch (_) {
     /* JSON でなければ既定のメッセージ */
   }
-  return new ApiError(res.status, code, message);
+  return new ApiError(res.status, code, message, detail);
 }
 
 /**

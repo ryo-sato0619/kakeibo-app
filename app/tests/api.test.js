@@ -44,6 +44,11 @@ describe('API クライアント', () => {
     await assert.rejects(api.del('/api/accounts/1'), (e) => e instanceof ApiError && e.status === 409 && e.code === 'CONFLICT' && /残高が 0/.test(e.message));
   });
 
+  it('サーバーが返す診断用のコード（detail）を ApiError に載せる', async () => {
+    const api = createApi({ fetchImpl: fakeFetch([jsonRes(503, { error: { code: 'DB_UNAVAILABLE', message: 'x', detail: '40613' } })]), retry: { max: 0, delayMs: 0 } });
+    await assert.rejects(api.get('/api/summary'), (e) => e.status === 503 && e.detail === '40613');
+  });
+
   it('JSON でないエラー応答でも、分かるメッセージにする', async () => {
     const api = createApi({ fetchImpl: fakeFetch([new Response('<html>Bad Gateway</html>', { status: 502 })]) });
     await assert.rejects(api.get('/api/summary'), (e) => e.status === 502 && /502/.test(e.message));

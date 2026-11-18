@@ -2,7 +2,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { parseConnectionString, isTransient, withRetry, createPoolManager } = require('../src/lib/db');
+const { parseConnectionString, isTransient, describeError, withRetry, createPoolManager } = require('../src/lib/db');
 const { ApiError } = require('../src/lib/errors');
 
 const sqlError = (number, message = 'x') => Object.assign(new Error(message), { number });
@@ -70,6 +70,35 @@ describe('一時的なエラーの判定', () => {
     assert.equal(isTransient({ code: 'ELOGIN', message: "Login failed for user 'x'." }), false);
     assert.equal(isTransient(new ApiError(404, 'NOT_FOUND', 'x')), false);
     assert.equal(isTransient(null), false);
+  });
+});
+
+describe('設定ミスと一時的なエラーの区別・診断コード', () => {
+  it('サーバー名の誤り（ENOTFOUND）や接続拒否は、待っても直らないので一時的ではない', () => {
+    const notFound = Object.assign(new Error('Failed to connect to x:1433 - getaddrinfo ENOTFOUND x'), { code: 'ESOCKET' });
+    const refused = Object.assign(new Error('Failed to connect - connect ECONNREFUSED 1.2.3.4:1433'), { code: 'ESOCKET' });
+    const viaOriginal = Object.assign(new Error('x'), { code: 'ESOCKET', originalError: { code: 'ENOTFOUND' } });
+    assert.equal(isTransient(notFound), false);
+    assert.equal(isTransient(refused), false);
+    assert.equal(isTransient(viaOriginal), false);
+    // 同じ ESOCKET でも、原因が分からない切断は一時的として扱う
+    assert.equal(isTransient({ code: 'ESOCKET', message: 'socket hang up' }), true);
+  });
+
+  it('診断コードは英数字のコードだけ（メッセージやサーバー名は含めない）', () => {
+    assert.equal(describeError(sqlError(40613, 'Database sql-kakeibo-xx is not currently available')), '40613');
+    assert.equal(describeError({ code: 'ELOGIN', originalError: { number: 18456 } }), 'ELOGIN/18456');
+    assert.equal(describeError({ code: 'ESOCKET', originalError: { code: 'ENOTFOUND' }, message: 'host.example.net' }), 'ESOCKET/ENOTFOUND');
+    assert.equal(describeError(new Error('password=secret')), undefined);
+    assert.equal(describeError({ code: 'bad code with spaces; password=x' }), undefined);
+    assert.equal(describeError(null), undefined);
+  });
+
+  it('リトライしても回復しないときの 503 には、最後のエラーの診断コードが付く', async () => {
+    await assert.rejects(
+      withRetry(async () => { throw sqlError(40613); }, { sleep: async () => {} }),
+      (e) => e.status === 503 && e.detail === '40613',
+    );
   });
 });
 

@@ -56,6 +56,29 @@ describe('HTTP ラッパー（認証・エラー変換）', () => {
     assert.equal(body(res).error.code, 'DB_UNAVAILABLE');
   });
 
+  it('503 と 500 の応答には、診断用の短いコード（detail）が付く。メッセージの中身は含めない', async () => {
+    const waking = wrap({ GET: async () => { throw Object.assign(new Error('x'), { number: 40613 }); } });
+    const w = await waking(fakeRequest());
+    assert.equal(body(w).error.detail, '40613');
+
+    const loginFailed = wrap({
+      GET: async () => { throw Object.assign(new Error("Login failed for user 'secret_user'"), { code: 'ELOGIN', number: 18456 }); },
+    });
+    const l = await loginFailed(fakeRequest(), { error: () => {} });
+    assert.equal(l.status, 500);
+    assert.equal(body(l).error.detail, 'ELOGIN/18456');
+    assert.ok(!JSON.stringify(body(l)).includes('secret_user'));
+
+    // サーバー名の誤りは、503（起動中）ではなく 500 + 原因コードになる
+    const wrongHost = wrap({
+      GET: async () => { throw Object.assign(new Error('Failed to connect - getaddrinfo ENOTFOUND wrong-host'), { code: 'ESOCKET' }); },
+    });
+    const h = await wrongHost(fakeRequest(), { error: () => {} });
+    assert.equal(h.status, 500);
+    assert.equal(body(h).error.detail, 'ESOCKET');
+    assert.ok(!JSON.stringify(body(h)).includes('wrong-host'));
+  });
+
   it('一意制約違反（2627）・外部キー違反（547）は 409', async () => {
     const dup = wrap({ GET: async () => { throw Object.assign(new Error('dup'), { number: 2627 }); } });
     const fk = wrap({ GET: async () => { throw Object.assign(new Error('fk'), { number: 547 }); } });

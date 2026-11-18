@@ -1,0 +1,11 @@
+[35mapi/local.settings.json.example[m[36m:[m[32m6[m[36m:[m    "SQL_CONNECTION_STRING": "Server=tcp:<サーバー名>.database.[1;31mwindows.net[m,1433;Database=kakeibo;User Id=<管理者ログイン>;Password=<パスワード>;Encrypt=true;"
+[35mapi/src/lib/db.js[m[36m:[m[32m110[m[36m:[m *   Server=tcp:xxx.database.[1;31mwindows.net[m,1433;Database=kakeibo;User Id=...;Password=...;Encrypt=true;
+[35mapi/tests/db.test.js[m[36m:[m[32m13[m[36m:[m      'Server=tcp:example-server.database.[1;31mwindows.net[m,1433;Database=kakeibo;User Id=app_user;Password=abc123;Encrypt=true;',
+[35mapi/tests/db.test.js[m[36m:[m[32m15[m[36m:[m    assert.equal(c.server, 'example-server.database.[1;31mwindows.net[m');
+[35mapi/tests/db.test.js[m[36m:[m[32m26[m[36m:[m      'Server=tcp:h.database.[1;31mwindows.net[m,1433;Initial Catalog=kakeibo;User ID=u;Password=p;Encrypt=True;TrustServerCertificate=False;Connection Timeout=45;',
+[35mapi/tests/db.test.js[m[36m:[m[32m39[m[36m:[m    const c = parseConnectionString('Server=h.database.[1;31mwindows.net[m;Database=d;User Id=u;Password=p');
+[35mdocs/azure-sql-setup.md[m[36m:[m[32m37[m[36m:[m  sqlcmd -S <サーバー名>.database.[1;31mwindows.net[m -d <DB名> -U <管理者> -P <パスワード> -f 65001 -i db/schema.sql
+[35mdocs/azure-sql-setup.md[m[36m:[m[32m38[m[36m:[m  sqlcmd -S <サーバー名>.database.[1;31mwindows.net[m -d <DB名> -U <管理者> -P <パスワード> -f 65001 -i db/seed.sql
+[35mdocs/azure-sql-setup.md[m[36m:[m[32m56[m[36m:[mServer=tcp:<サーバー名>.database.[1;31mwindows.net[m,1433;Database=<DB名>;User Id=<管理者>;Password=<パスワード>;Encrypt=true;
+[35mdocs/deploy.md[m[36m:[m[32m158[m[36m:[mgit grep -nI "[1;31mwindows.net[m"
+[35mdocs/deploy.md[m[36m:[m[32m256[m[36m:[mServer=tcp:<サーバー名>.database.[1;31mwindows.net[m,1433;Database=kakeibo;User Id=<管理者ログイン>;Password=<パスワード>;Encrypt=true;

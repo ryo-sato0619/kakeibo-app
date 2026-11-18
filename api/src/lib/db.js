@@ -35,9 +35,35 @@ function errorNumber(err) {
   return candidates.find((n) => typeof n === 'number');
 }
 
+// サーバー名の誤り・接続先が存在しない、などの「設定ミス」。待っても直らないので、一時的とは見なさない。
+const PERMANENT_NETWORK = /ENOTFOUND|ECONNREFUSED|EINVAL/;
+
+const SAFE_CODE = /^[A-Za-z0-9_]{1,40}$/;
+
+/**
+ * 画面・API の応答に付ける、診断用の短いコード（例: "40613"、"ESOCKET/ENOTFOUND"）。
+ * エラーメッセージ（サーバー名などを含み得る）は含めず、英数字のコードだけを返す。
+ */
+function describeError(err) {
+  if (!err) return undefined;
+  const parts = [];
+  const add = (v) => {
+    if ((typeof v === 'string' || typeof v === 'number') && SAFE_CODE.test(String(v))) parts.push(String(v));
+  };
+  add(err.code);
+  add(err.originalError && err.originalError.code);
+  add(errorNumber(err));
+  const unique = [...new Set(parts)];
+  return unique.length ? unique.join('/') : undefined;
+}
+
 /** リトライすれば回復しうる一時的なエラーか */
 function isTransient(err) {
   if (!err || err instanceof ApiError) return false;
+  const underlying = [err.originalError && err.originalError.code, err.cause && err.cause.code];
+  if (underlying.some((c) => c && PERMANENT_NETWORK.test(String(c))) || PERMANENT_NETWORK.test(String(err.message || ''))) {
+    return false;
+  }
   const n = errorNumber(err);
   if (n !== undefined && TRANSIENT_NUMBERS.has(n)) return true;
   if (err.code && TRANSIENT_CODES.has(err.code)) return true;
@@ -64,7 +90,7 @@ async function withRetry(fn, options = {}) {
     } catch (err) {
       if (!isTransient(err)) throw err;
       const delay = baseDelayMs * 2 ** attempt;
-      if (attempt >= retries || now() - startedAt + delay > maxTotalMs) throw dbUnavailable();
+      if (attempt >= retries || now() - startedAt + delay > maxTotalMs) throw dbUnavailable(undefined, describeError(err));
       await sleep(delay);
       attempt += 1;
     }
@@ -327,5 +353,6 @@ module.exports = {
   createPoolManager,
   parseConnectionString,
   isTransient,
+  describeError,
   withRetry,
 };
